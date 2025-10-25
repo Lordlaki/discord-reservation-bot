@@ -3,14 +3,24 @@ package sk.discordtranslatorbot.commands.impl;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import sk.discordtranslatorbot.commands.Command;
 import sk.discordtranslatorbot.data.Game;
-import sk.discordtranslatorbot.data.GameStorage;
+import sk.discordtranslatorbot.data.HybridStorage;
 
 public class InfoCommand implements Command {
 
-    private final GameStorage storage;
+    private final HybridStorage storage;
 
-    public InfoCommand(GameStorage storage) {
+    public InfoCommand(HybridStorage storage) {
         this.storage = storage;
+    }
+
+    @Override
+    public String getName() {
+        return "!info";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Zobrazí, kto má rezervovanú hru.";
     }
 
     @Override
@@ -20,7 +30,7 @@ public class InfoCommand implements Command {
             return;
         }
 
-        Game g = storage.get(argument);
+        Game g = storage.get(argument.trim());
         if (g == null) {
             event.getChannel().sendMessage("❌ Hra neexistuje").queue();
             return;

@@ -4,18 +4,26 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class Config {
-    public static String loadToken() {
-        try (InputStream input = Config.class.getClassLoader().getResourceAsStream("config.properties")) {
-            if (input == null) {
-                System.err.println("❌ config.properties nenájdený v resources");
-                return null;
+
+    private static Properties props;
+
+    private static void load() throws Exception {
+        if (props == null) {
+            props = new Properties();
+            try (InputStream in = Config.class.getClassLoader().getResourceAsStream("config.properties")) {
+                if (in == null) throw new RuntimeException("config.properties nenájdený!");
+                props.load(in);
             }
-            Properties prop = new Properties();
-            prop.load(input);
-            return prop.getProperty("DISCORD_TOKEN");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
         }
+    }
+
+    public static String loadToken() throws Exception {
+        load();
+        return props.getProperty("DISCORD_TOKEN");
+    }
+
+    public static String loadSheetId() throws Exception {
+        load();
+        return props.getProperty("SHEET_ID");
     }
 }

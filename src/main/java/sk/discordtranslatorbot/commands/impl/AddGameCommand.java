@@ -2,29 +2,50 @@ package sk.discordtranslatorbot.commands.impl;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import sk.discordtranslatorbot.commands.Command;
-import sk.discordtranslatorbot.data.GameStorage;
+import sk.discordtranslatorbot.data.Game;
+import sk.discordtranslatorbot.data.HybridStorage;
 
 public class AddGameCommand implements Command {
 
-    private final GameStorage storage;
+    private final HybridStorage storage;
 
-    public AddGameCommand(GameStorage storage) {
+    public AddGameCommand(HybridStorage storage) {
         this.storage = storage;
+    }
+
+    @Override
+    public String getName() {
+        return "!pridaj";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Pridá novú hru do zoznamu. Použitie: !pridaj <názov_hry>";
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String argument) {
         if (argument == null || argument.isEmpty()) {
-            event.getChannel().sendMessage("Použi: !pridaj <názov hry>").queue();
+            event.getChannel().sendMessage("❌ Použitie: !pridaj <názov_hry>").queue();
             return;
         }
 
-        if (storage.get(argument) != null) {
-            event.getChannel().sendMessage("⚠️ Hra už existuje").queue();
+        String gameName = argument.trim();
+
+        Game existing = storage.get(gameName);
+        if (existing != null) {
+            event.getChannel().sendMessage("⚠️ Hra **" + gameName + "** už existuje!").queue();
             return;
         }
 
-        storage.addGame(argument);
-        event.getChannel().sendMessage("✅ Pridaná hra: " + argument).queue();
+        try {
+            storage.addGame(gameName);
+            event.getChannel().sendMessage("✅ Hra **" + gameName + "** bola pridaná do zoznamu.").queue();
+        } catch (Exception e) {
+            event.getChannel().sendMessage(
+                    "❌ Nepodarilo sa pridať hru **" + gameName + "**: " + e.getMessage()
+            ).queue();
+            e.printStackTrace();
+        }
     }
 }

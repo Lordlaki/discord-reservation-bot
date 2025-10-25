@@ -3,14 +3,24 @@ package sk.discordtranslatorbot.commands.impl;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import sk.discordtranslatorbot.commands.Command;
 import sk.discordtranslatorbot.data.Game;
-import sk.discordtranslatorbot.data.GameStorage;
+import sk.discordtranslatorbot.data.HybridStorage;
 
 public class CancelReservationCommand implements Command {
 
-    private final GameStorage storage;
+    private final HybridStorage storage;
 
-    public CancelReservationCommand(GameStorage storage) {
+    public CancelReservationCommand(HybridStorage storage) {
         this.storage = storage;
+    }
+
+    @Override
+    public String getName() {
+        return "!zrus";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Zruší rezerváciu hry, ktorú má používateľ rezervovanú.";
     }
 
     @Override
@@ -20,7 +30,9 @@ public class CancelReservationCommand implements Command {
             return;
         }
 
-        Game g = storage.get(argument);
+        String gameName = argument.trim();
+        Game g = storage.get(gameName);
+
         if (g == null) {
             event.getChannel().sendMessage("❌ Hra neexistuje").queue();
             return;
@@ -38,7 +50,8 @@ public class CancelReservationCommand implements Command {
 
         g.setReservedBy(null);
         g.setReservedById(null);
-        storage.save();
+        storage.save(g);
+
         event.getChannel().sendMessage("✅ Rezervácia zrušená").queue();
     }
 }

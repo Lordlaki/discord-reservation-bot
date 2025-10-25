@@ -8,17 +8,18 @@ import sk.discordtranslatorbot.commands.impl.ListGamesCommand;
 import sk.discordtranslatorbot.commands.impl.ReserveGameCommand;
 import sk.discordtranslatorbot.commands.impl.CancelReservationCommand;
 import sk.discordtranslatorbot.commands.impl.InfoCommand;
-import sk.discordtranslatorbot.data.GameStorage;
+import sk.discordtranslatorbot.data.HybridStorage;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ReservationBot extends ListenerAdapter {
 
-    private final GameStorage storage; // jednotné úložisko
+    private final HybridStorage storage;
     private final Map<String, Command> commands = new HashMap<>();
 
-    public ReservationBot(GameStorage storage) {
+    // KONŠTRUKTOR s HybridStorage
+    public ReservationBot(HybridStorage storage) {
         this.storage = storage;
 
         // registrácia príkazov
