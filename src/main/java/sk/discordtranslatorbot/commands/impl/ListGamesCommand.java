@@ -22,7 +22,7 @@ public class ListGamesCommand implements Command {
 
     @Override
     public String getName() {
-        return "!zoznam";
+        return "zoznam"; // bez !!
     }
 
     @Override
@@ -44,8 +44,8 @@ public class ListGamesCommand implements Command {
             embed.setTitle(g.getName());
             embed.setColor(Color.CYAN);
 
-            String status = (g.getReservedBy() != null) ? "🔒 rezervované" : "🟢 voľná";
-            String linkText = (g.getSteamLink() != null) ? "[Steam link](" + g.getSteamLink() + ")" : "-";
+            String status = g.isReserved() ? "🔒 rezervované" : "🟢 voľná";
+            String linkText = g.getSteamLink() != null ? "[Steam link](" + g.getSteamLink() + ")" : "-";
 
             embed.addField("Status", status, false);
             embed.addField("Steam", linkText, false);
@@ -56,7 +56,7 @@ public class ListGamesCommand implements Command {
                 if (matcher.find()) {
                     String appId = matcher.group(1);
                     String imageUrl = "https://cdn.cloudflare.steamstatic.com/steam/apps/" + appId + "/header.jpg";
-                    embed.setThumbnail(imageUrl); // obrázok vpravo hore
+                    embed.setThumbnail(imageUrl);
                 }
             }
 

@@ -16,7 +16,7 @@ public class ReserveGameCommand implements Command {
 
     @Override
     public String getName() {
-        return "!rezervuj";
+        return "rezervuj";
     }
 
     @Override

@@ -15,7 +15,7 @@ public class CancelReservationCommand implements Command {
 
     @Override
     public String getName() {
-        return "!zrus";
+        return "zrus";  // bez !!
     }
 
     @Override

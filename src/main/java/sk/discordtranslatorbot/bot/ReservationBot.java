@@ -3,11 +3,7 @@ package sk.discordtranslatorbot.bot;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import sk.discordtranslatorbot.commands.Command;
-import sk.discordtranslatorbot.commands.impl.AddGameCommand;
-import sk.discordtranslatorbot.commands.impl.ListGamesCommand;
-import sk.discordtranslatorbot.commands.impl.ReserveGameCommand;
-import sk.discordtranslatorbot.commands.impl.CancelReservationCommand;
-import sk.discordtranslatorbot.commands.impl.InfoCommand;
+import sk.discordtranslatorbot.commands.CommandRegistry;
 import sk.discordtranslatorbot.data.HybridStorage;
 
 import java.util.HashMap;
@@ -15,19 +11,13 @@ import java.util.Map;
 
 public class ReservationBot extends ListenerAdapter {
 
-    private final HybridStorage storage;
     private final Map<String, Command> commands = new HashMap<>();
 
-    // KONŠTRUKTOR s HybridStorage
-    public ReservationBot(HybridStorage storage) {
-        this.storage = storage;
-
-        // registrácia príkazov
-        commands.put("pridaj", new AddGameCommand(storage));
-        commands.put("zoznam", new ListGamesCommand(storage));
-        commands.put("rezervuj", new ReserveGameCommand(storage));
-        commands.put("zrus", new CancelReservationCommand(storage));
-        commands.put("info", new InfoCommand(storage));
+    public ReservationBot(HybridStorage storage, CommandRegistry registry) {
+        // Naplníme mapu všetkými príkazmi z registry
+        for (Command cmd : registry.getCommands()) {
+            commands.put(cmd.getName().toLowerCase(), cmd);
+        }
     }
 
     @Override
@@ -38,14 +28,14 @@ public class ReservationBot extends ListenerAdapter {
         if (!msg.startsWith("!")) return;
 
         String[] parts = msg.substring(1).split("\\s+", 2);
-        String cmd = parts[0].toLowerCase();
+        String cmdName = parts[0].toLowerCase();
         String arg = parts.length > 1 ? parts[1] : null;
 
-        Command command = commands.get(cmd);
-        if (command != null) {
-            command.execute(event, arg);
+        Command cmd = commands.get(cmdName);
+        if (cmd != null) {
+            cmd.execute(event, arg);
         } else {
-            event.getChannel().sendMessage("❌ Neznámy príkaz: " + cmd).queue();
+            event.getChannel().sendMessage("❌ Neznámy príkaz: " + cmdName).queue();
         }
     }
 }

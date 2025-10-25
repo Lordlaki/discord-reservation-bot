@@ -15,7 +15,7 @@ public class AddGameCommand implements Command {
 
     @Override
     public String getName() {
-        return "!pridaj";
+        return "pridaj";  // bez !!
     }
 
     @Override
@@ -33,7 +33,7 @@ public class AddGameCommand implements Command {
         String name = argument;
         String link = null;
 
-        // Rozdelenie názvu a linku, ak posledné slovo začína "http" alebo "https"
+        // Rozdelenie názvu a linku
         String[] parts = argument.split("\\s+");
         String lastPart = parts[parts.length - 1];
         if (lastPart.startsWith("http://") || lastPart.startsWith("https://")) {
@@ -41,15 +41,11 @@ public class AddGameCommand implements Command {
             name = argument.substring(0, argument.lastIndexOf(lastPart)).trim();
         }
 
-        // Vytvorenie objektu hry a uloženie Steam linku
         Game g = new Game(name);
         if (link != null) g.setSteamLink(link);
 
-        // Uloženie do HybridStorage
         storage.addOrUpdateGame(g);
 
-        // Správa na Discord: len názov hry, Steam link sa nezobrazuje
-        String msg = "✅ Hra pridaná: **" + name + "**";
-        event.getChannel().sendMessage(msg).queue();
+        event.getChannel().sendMessage("✅ Hra pridaná: **" + name + "**").queue();
     }
 }
