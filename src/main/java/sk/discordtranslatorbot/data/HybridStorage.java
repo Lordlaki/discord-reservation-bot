@@ -1,7 +1,6 @@
 package sk.discordtranslatorbot.data;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class HybridStorage {
@@ -15,26 +14,29 @@ public class HybridStorage {
     }
 
     /**
-     * Pridá hru do lokálneho aj Google Sheets storage.
+     * Pridá alebo aktualizuje hru v lokálnom aj Google Sheets storage.
      */
-    public synchronized void addGame(String name) {
-        Game g = localStorage.get(name);
-        if (g == null) {
-            localStorage.addGame(name);
-            g = localStorage.get(name);
+    public synchronized void addOrUpdateGame(Game game) {
+        Game local = localStorage.get(game.getName());
+        if (local == null) {
+            // vytvor novú hru lokálne
+            localStorage.addGame(game.getName());
+            local = localStorage.get(game.getName());
         }
 
-        // uloženie do Google Sheets
-        if (remoteStorage != null && g != null) {
+        // aktualizuj všetky údaje
+        local.setReservedBy(game.getReservedBy());
+        local.setReservedById(game.getReservedById());
+        local.setSteamLink(game.getSteamLink());
+        localStorage.save();
+
+        if (remoteStorage != null) {
             try {
-                remoteStorage.save(g);
+                remoteStorage.save(local); // uloží aktualizovanú lokálnu hru
             } catch (Exception e) {
                 System.err.println("⚠️ Nepodarilo sa zapísať do Google Sheets: " + e.getMessage());
             }
         }
-
-        // uloženie lokálne
-        localStorage.save();
     }
 
     /**
@@ -44,13 +46,17 @@ public class HybridStorage {
         Game g = localStorage.get(name);
         if (g == null && remoteStorage != null) {
             try {
-                List<Game> allRemote = remoteStorage.getAll();
-                for (Game gr : allRemote) {
-                    if (gr.getName().equalsIgnoreCase(name)) {
+                List<Game> remoteGames = remoteStorage.getAll();
+                for (Game rg : remoteGames) {
+                    if (rg.getName().equalsIgnoreCase(name)) {
                         // pridaj do lokálneho storage
-                        localStorage.addGame(gr.getName());
+                        localStorage.addGame(rg.getName());
+                        Game localGame = localStorage.get(rg.getName());
+                        localGame.setReservedBy(rg.getReservedBy());
+                        localGame.setReservedById(rg.getReservedById());
+                        localGame.setSteamLink(rg.getSteamLink());
                         localStorage.save();
-                        return gr;
+                        return localGame;
                     }
                 }
             } catch (Exception e) {
@@ -61,9 +67,9 @@ public class HybridStorage {
     }
 
     /**
-     * Získa všetky hry, lokálne aj z Google Sheets (bez duplicitných mien).
+     * Získa všetky hry lokálne aj z Google Sheets (bez duplicitných mien).
      */
-    public synchronized Collection<Game> getAll() {
+    public synchronized List<Game> getAll() {
         List<Game> all = new ArrayList<>(localStorage.getAll());
 
         if (remoteStorage != null) {
@@ -83,18 +89,9 @@ public class HybridStorage {
     }
 
     /**
-     * Uloží hru do lokálneho a Google Sheets storage.
+     * Uloží alebo aktualizuje hru v lokálnom a Google Sheets storage.
      */
     public synchronized void save(Game g) {
-        // najprv uloží lokálne, potom do Sheets
-        localStorage.save();
-
-        if (remoteStorage != null) {
-            try {
-                remoteStorage.save(g);
-            } catch (Exception e) {
-                System.err.println("⚠️ Chyba pri ukladaní do Google Sheets: " + e.getMessage());
-            }
-        }
+        addOrUpdateGame(g);
     }
 }

@@ -26,28 +26,29 @@ public class GoogleSheetsStorage {
                 .build();
     }
 
-    /**
-     * Načíta všetky hry z Google Sheets.
-     */
     public List<Game> getAll() throws Exception {
         ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, sheetName + "!A:C")
+                .get(spreadsheetId, sheetName + "!A:D")
                 .execute();
 
         List<List<Object>> values = response.getValues();
         List<Game> games = new ArrayList<>();
 
-        if (values != null) {
-            for (List<Object> row : values) {
+        if (values != null && values.size() > 1) {
+            // preskočíme prvý riadok (hlavičku)
+            for (int i = 1; i < values.size(); i++) {
+                List<Object> row = values.get(i);
                 String name = row.size() > 0 ? row.get(0).toString() : "";
                 if (name.isBlank()) continue;
 
                 String reservedBy = row.size() > 1 ? row.get(1).toString() : null;
                 String reservedById = row.size() > 2 ? row.get(2).toString() : null;
+                String steamLink = row.size() > 3 ? row.get(3).toString() : null;
 
                 Game g = new Game(name);
                 g.setReservedBy((reservedBy == null || reservedBy.isBlank()) ? null : reservedBy);
                 g.setReservedById((reservedById == null || reservedById.isBlank()) ? null : reservedById);
+                g.setSteamLink((steamLink == null || steamLink.isBlank()) ? null : steamLink);
                 games.add(g);
             }
         }
@@ -55,16 +56,14 @@ public class GoogleSheetsStorage {
         return games;
     }
 
-    /**
-     * Uloží alebo aktualizuje hru v Google Sheets.
-     */
     public void save(Game g) throws Exception {
         List<Game> all = getAll();
         int existingIndex = -1;
 
+        // index +2, aby sa preskočila hlavička
         for (int i = 0; i < all.size(); i++) {
             if (all.get(i).getName().equalsIgnoreCase(g.getName())) {
-                existingIndex = i + 1; // Sheets index od 1
+                existingIndex = i + 2; // Sheets index od 1, +1 pre hlavičku
                 break;
             }
         }
@@ -73,22 +72,21 @@ public class GoogleSheetsStorage {
         values.add(List.of(
                 g.getName(),
                 g.getReservedBy() != null ? g.getReservedBy() : "",
-                g.getReservedById() != null ? g.getReservedById() : ""
+                g.getReservedById() != null ? g.getReservedById() : "",
+                g.getSteamLink() != null ? g.getSteamLink() : ""
         ));
 
         ValueRange body = new ValueRange().setValues(values);
 
         if (existingIndex != -1) {
-            // aktualizácia existujúceho riadku
-            String range = sheetName + "!A" + existingIndex + ":C" + existingIndex;
+            String range = sheetName + "!A" + existingIndex + ":D" + existingIndex;
             service.spreadsheets().values()
                     .update(spreadsheetId, range, body)
                     .setValueInputOption("RAW")
                     .execute();
         } else {
-            // pridanie nového riadku
             service.spreadsheets().values()
-                    .append(spreadsheetId, sheetName + "!A:C", body)
+                    .append(spreadsheetId, sheetName + "!A:D", body)
                     .setValueInputOption("RAW")
                     .execute();
         }

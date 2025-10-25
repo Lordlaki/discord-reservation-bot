@@ -22,13 +22,27 @@ public class GameStorage {
         return name.trim().toLowerCase();
     }
 
-    // pridanie novej hry
+    // pridanie novej hry podľa mena (legacy)
     public synchronized void addGame(String name) {
         String k = key(name);
         if (!games.containsKey(k)) {
             games.put(k, new Game(name.trim()));
             save();
         }
+    }
+
+    // pridanie alebo aktualizácia celej hry
+    public synchronized void addOrUpdateGame(Game game) {
+        String k = key(game.getName());
+        Game existing = games.get(k);
+        if (existing == null) {
+            games.put(k, game);
+        } else {
+            existing.setReservedBy(game.getReservedBy());
+            existing.setReservedById(game.getReservedById());
+            existing.setSteamLink(game.getSteamLink());
+        }
+        save();
     }
 
     // získanie hry podľa mena

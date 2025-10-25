@@ -5,6 +5,8 @@ import sk.discordtranslatorbot.commands.Command;
 import sk.discordtranslatorbot.data.Game;
 import sk.discordtranslatorbot.data.HybridStorage;
 
+import java.util.List;
+
 public class InfoCommand implements Command {
 
     private final HybridStorage storage;
@@ -15,31 +17,40 @@ public class InfoCommand implements Command {
 
     @Override
     public String getName() {
-        return "!info";
+        return "info";
     }
 
     @Override
     public String getDescription() {
-        return "Zobrazí, kto má rezervovanú hru.";
+        return "!info <názov hry> - zobrazí informácie o hre";
     }
 
     @Override
-    public void execute(MessageReceivedEvent event, String argument) {
-        if (argument == null || argument.isEmpty()) {
-            event.getChannel().sendMessage("Použi: !info <hra>").queue();
+    public void execute(MessageReceivedEvent event, String args) {
+        if (args == null || args.isBlank()) {
+            event.getChannel().sendMessage("❌ Zadaj názov hry: !info <názov>").queue();
             return;
         }
 
-        Game g = storage.get(argument.trim());
+        String name = args.trim();
+        Game g = storage.get(name);
+
         if (g == null) {
-            event.getChannel().sendMessage("❌ Hra neexistuje").queue();
+            event.getChannel().sendMessage("❌ Hra nenájdená: " + name).queue();
             return;
         }
 
-        if (!g.isReserved()) {
-            event.getChannel().sendMessage("Hra `" + g.getName() + "` nie je rezervovaná").queue();
+        StringBuilder sb = new StringBuilder();
+        sb.append("ℹ️ Informácie o hre: **").append(g.getName()).append("**\n");
+        if (g.getReservedBy() != null) {
+            sb.append("Rezervovaná: ").append(g.getReservedBy()).append("\n");
         } else {
-            event.getChannel().sendMessage("Hru `" + g.getName() + "` má rezervovanú: " + g.getReservedBy()).queue();
+            sb.append("Nie je rezervovaná\n");
         }
+        if (g.getSteamLink() != null && !g.getSteamLink().isBlank()) {
+            sb.append("Steam link: ").append(g.getSteamLink());
+        }
+
+        event.getChannel().sendMessage(sb.toString()).queue();
     }
 }
