@@ -14,9 +14,7 @@ public class CompleteCommand implements Command {
     }
 
     @Override
-    public String getName() {
-        return "complet";
-    }
+    public String getName() { return "complet"; }
 
     @Override
     public String getDescription() {
@@ -26,7 +24,7 @@ public class CompleteCommand implements Command {
     @Override
     public void execute(MessageReceivedEvent event, String args) {
         if (args == null || args.isBlank()) {
-            event.getChannel().sendMessage("⚠️ Použitie: `!complet <názov hry> <jazyk:cz/sk/both> <verzia>`").queue();
+            event.getChannel().sendMessage("⚠️ Použitie: !complet <názov hry> <jazyk:cz/sk/both> <verzia>").queue();
             return;
         }
 
@@ -41,8 +39,8 @@ public class CompleteCommand implements Command {
 
         StringBuilder nameBuilder = new StringBuilder();
         for (int i = 0; i < parts.length - 2; i++) {
+            if (i > 0) nameBuilder.append(" ");
             nameBuilder.append(parts[i]);
-            if (i < parts.length - 3) nameBuilder.append(" ");
         }
         String gameName = nameBuilder.toString();
 
@@ -53,27 +51,51 @@ public class CompleteCommand implements Command {
         }
 
         String userId = event.getAuthor().getId();
-        if (!userId.equals(game.getReservedById())) {
-            event.getChannel().sendMessage("🚫 Túto hru môže dokončiť len používateľ, ktorý ju rezervoval.").queue();
-            return;
-        }
+        boolean isOwner = false;
 
-        // nastavenie verzie podľa jazyka
         switch (lang) {
-            case "cz" -> game.setCzechVersion(version);
-            case "sk" -> game.setSlovakVersion(version);
-            case "both" -> {
-                game.setCzechVersion(version);
-                game.setSlovakVersion(version);
-            }
+            case "cz" -> isOwner = userId.equals(game.getReservedByIdCz());
+            case "sk" -> isOwner = userId.equals(game.getReservedByIdSk());
+            case "both" -> isOwner = userId.equals(game.getReservedByIdCz()) || userId.equals(game.getReservedByIdSk());
             default -> {
                 event.getChannel().sendMessage("⚠️ Neplatný jazyk. Použi: cz, sk alebo both").queue();
                 return;
             }
         }
 
-        game.setCompleted(true);
-        storage.save(game); // uloží aj do Google Sheets
+        if (!isOwner) {
+            event.getChannel().sendMessage("🚫 Túto hru môže dokončiť len používateľ, ktorý ju rezervoval pre daný jazyk.").queue();
+            return;
+        }
+
+        // Nastavenie verzie a vymazanie rezervácie pre príslušný jazyk
+        switch (lang) {
+            case "cz" -> {
+                game.setCzechVersion(version); // E
+                game.setReservedByCz(null);    // B
+                game.setReservedByIdCz(null);
+            }
+            case "sk" -> {
+                game.setSlovakVersion(version); // F
+                game.setReservedBySk(null);     // C
+                game.setReservedByIdSk(null);
+            }
+            case "both" -> {
+                if (userId.equals(game.getReservedByIdCz())) {
+                    game.setCzechVersion(version);
+                    game.setReservedByCz(null);
+                    game.setReservedByIdCz(null);
+                }
+                if (userId.equals(game.getReservedByIdSk())) {
+                    game.setSlovakVersion(version);
+                    game.setReservedBySk(null);
+                    game.setReservedByIdSk(null);
+                }
+            }
+        }
+
+        game.setCompleted(true); // G
+        storage.save(game);
 
         event.getChannel().sendMessage("✅ Hra **" + game.getName() + "** označená ako hotová.\n"
                 + "🇨🇿 " + (game.getCzechVersion() != null ? game.getCzechVersion() : "-") + " | "

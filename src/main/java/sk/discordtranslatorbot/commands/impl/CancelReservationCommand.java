@@ -15,7 +15,7 @@ public class CancelReservationCommand implements Command {
 
     @Override
     public String getName() {
-        return "zrus";  // bez !!
+        return "zrus";
     }
 
     @Override
@@ -38,20 +38,27 @@ public class CancelReservationCommand implements Command {
             return;
         }
 
-        if (!g.isReserved()) {
-            event.getChannel().sendMessage("⚠️ Hra nie je rezervovaná").queue();
+        String userId = event.getAuthor().getId();
+        boolean canceled = false;
+
+        if (userId.equals(g.getReservedByIdCz())) {
+            g.setReservedByCz(null);
+            g.setReservedByIdCz(null);
+            canceled = true;
+        }
+
+        if (userId.equals(g.getReservedByIdSk())) {
+            g.setReservedBySk(null);
+            g.setReservedByIdSk(null);
+            canceled = true;
+        }
+
+        if (!canceled) {
+            event.getChannel().sendMessage("⚠️ Hru môže zrušiť len používateľ, ktorý ju rezervoval").queue();
             return;
         }
 
-        if (!g.getReservedById().equals(event.getAuthor().getId())) {
-            event.getChannel().sendMessage("⚠️ Hru môže zrušiť len rezervujúci").queue();
-            return;
-        }
-
-        g.setReservedBy(null);
-        g.setReservedById(null);
         storage.save(g);
-
         event.getChannel().sendMessage("✅ Rezervácia zrušená").queue();
     }
 }

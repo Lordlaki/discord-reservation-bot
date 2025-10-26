@@ -5,8 +5,6 @@ import sk.discordtranslatorbot.commands.Command;
 import sk.discordtranslatorbot.data.Game;
 import sk.discordtranslatorbot.data.HybridStorage;
 
-import java.util.List;
-
 public class InfoCommand implements Command {
 
     private final HybridStorage storage;
@@ -42,11 +40,20 @@ public class InfoCommand implements Command {
 
         StringBuilder sb = new StringBuilder();
         sb.append("ℹ️ Informácie o hre: **").append(g.getName()).append("**\n");
-        if (g.getReservedBy() != null) {
-            sb.append("Rezervovaná: ").append(g.getReservedBy()).append("\n");
-        } else {
+
+        boolean reserved = false;
+        if (g.getReservedByCz() != null && !g.getReservedByCz().isBlank()) {
+            sb.append("🇨🇿 Rezervovaná: ").append(g.getReservedByCz()).append("\n");
+            reserved = true;
+        }
+        if (g.getReservedBySk() != null && !g.getReservedBySk().isBlank()) {
+            sb.append("🇸🇰 Rezervovaná: ").append(g.getReservedBySk()).append("\n");
+            reserved = true;
+        }
+        if (!reserved) {
             sb.append("Nie je rezervovaná\n");
         }
+
         if (g.getSteamLink() != null && !g.getSteamLink().isBlank()) {
             sb.append("Steam link: ").append(g.getSteamLink());
         }

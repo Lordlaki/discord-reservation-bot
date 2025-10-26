@@ -24,17 +24,22 @@ public class HybridStorage {
             local = localStorage.get(game.getName());
         }
 
-        // aktualizuj všetky údaje
-        local.setReservedBy(game.getReservedBy());
-        local.setReservedById(game.getReservedById());
+        // Aktualizácia všetkých atribútov
+        local.setReservedByCz(game.getReservedByCz());
+        local.setReservedByIdCz(game.getReservedByIdCz());
+        local.setReservedBySk(game.getReservedBySk());
+        local.setReservedByIdSk(game.getReservedByIdSk());
         local.setSteamLink(game.getSteamLink());
         local.setCzechVersion(game.getCzechVersion());
+        local.setSlovakVersion(game.getSlovakVersion());
         local.setCompleted(game.isCompleted());
+
         localStorage.save();
 
+        // Aktualizácia aj v Google Sheets
         if (remoteStorage != null) {
             try {
-                remoteStorage.save(local); // uloží aktualizovanú lokálnu hru
+                remoteStorage.save(local);
             } catch (Exception e) {
                 System.err.println("⚠️ Nepodarilo sa zapísať do Google Sheets: " + e.getMessage());
             }
@@ -51,14 +56,18 @@ public class HybridStorage {
                 List<Game> remoteGames = remoteStorage.getAll();
                 for (Game rg : remoteGames) {
                     if (rg.getName().equalsIgnoreCase(name)) {
-                        // pridaj do lokálneho storage
                         localStorage.addGame(rg.getName());
                         Game localGame = localStorage.get(rg.getName());
-                        localGame.setReservedBy(rg.getReservedBy());
-                        localGame.setReservedById(rg.getReservedById());
+
+                        localGame.setReservedByCz(rg.getReservedByCz());
+                        localGame.setReservedByIdCz(rg.getReservedByIdCz());
+                        localGame.setReservedBySk(rg.getReservedBySk());
+                        localGame.setReservedByIdSk(rg.getReservedByIdSk());
                         localGame.setSteamLink(rg.getSteamLink());
                         localGame.setCzechVersion(rg.getCzechVersion());
+                        localGame.setSlovakVersion(rg.getSlovakVersion());
                         localGame.setCompleted(rg.isCompleted());
+
                         localStorage.save();
                         return localGame;
                     }
@@ -71,7 +80,7 @@ public class HybridStorage {
     }
 
     /**
-     * Získa všetky hry lokálne aj z Google Sheets (bez duplicitných mien).
+     * Získa všetky hry z lokálneho aj Google Sheets storage (bez duplicitných mien).
      */
     public synchronized List<Game> getAll() {
         List<Game> all = new ArrayList<>(localStorage.getAll());
@@ -93,7 +102,7 @@ public class HybridStorage {
     }
 
     /**
-     * Uloží alebo aktualizuje hru v lokálnom a Google Sheets storage.
+     * Uloží alebo aktualizuje hru v lokálnom aj vzdialenom úložisku.
      */
     public synchronized void save(Game g) {
         addOrUpdateGame(g);
@@ -113,7 +122,7 @@ public class HybridStorage {
             }
         }
 
-        // ak nenájde, skús aj z Google Sheets
+        // ak nenájde, skús aj Google Sheets
         if (remoteStorage != null) {
             try {
                 for (Game g : remoteStorage.getAll()) {

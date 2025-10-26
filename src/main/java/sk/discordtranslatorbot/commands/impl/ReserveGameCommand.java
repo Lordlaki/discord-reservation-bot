@@ -15,25 +15,33 @@ public class ReserveGameCommand implements Command {
     }
 
     @Override
-    public String getName() {
-        return "rezervuj";
-    }
+    public String getName() { return "rezervuj"; }
 
     @Override
     public String getDescription() {
-        return "Rezervuje hru pre používateľa. Použitie: !rezervuj <názov_hry>";
+        return "Rezervuje hru pre používateľa. Použitie: !rezervuj <názov_hry> <jazyk:cz/sk/both>";
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String argument) {
-        if (argument == null || argument.isEmpty()) {
-            event.getChannel().sendMessage("❌ Použitie: !rezervuj <názov_hry>").queue();
+        if (argument == null || argument.isBlank()) {
+            event.getChannel().sendMessage("❌ Použitie: !rezervuj <názov_hry> <jazyk:cz/sk/both>").queue();
             return;
         }
 
-        String gameName = argument.trim();
-        User user = event.getAuthor();
-        String userName = user.getName();
+        String[] parts = argument.trim().split("\\s+");
+        if (parts.length < 2) {
+            event.getChannel().sendMessage("❌ Zadaj názov hry a jazyk: cz, sk alebo both").queue();
+            return;
+        }
+
+        StringBuilder nameBuilder = new StringBuilder();
+        for (int i = 0; i < parts.length - 1; i++) {
+            if (i > 0) nameBuilder.append(" ");
+            nameBuilder.append(parts[i]);
+        }
+        String gameName = nameBuilder.toString().trim();
+        String lang = parts[parts.length - 1].toLowerCase();
 
         Game game = storage.get(gameName);
         if (game == null) {
@@ -41,20 +49,44 @@ public class ReserveGameCommand implements Command {
             return;
         }
 
-        if (game.isReserved()) {
-            event.getChannel().sendMessage(
-                    "⚠️ Hra **" + gameName + "** je už rezervovaná používateľom **" + game.getReservedBy() + "**."
-            ).queue();
-            return;
+        User user = event.getAuthor();
+        String userName = user.getName();
+        String userId = user.getId();
+
+        switch (lang) {
+            case "cz" -> {
+                if (game.isReserved("cz")) {
+                    event.getChannel().sendMessage("⚠️ Hra **" + gameName + "** (CZ) je už rezervovaná používateľom **" + game.getReservedByCz() + "**.").queue();
+                    return;
+                }
+                game.setReservedByCz(userName); // B
+                game.setReservedByIdCz(userId);
+            }
+            case "sk" -> {
+                if (game.isReserved("sk")) {
+                    event.getChannel().sendMessage("⚠️ Hra **" + gameName + "** (SK) je už rezervovaná používateľom **" + game.getReservedBySk() + "**.").queue();
+                    return;
+                }
+                game.setReservedBySk(userName); // C
+                game.setReservedByIdSk(userId);
+            }
+            case "both" -> {
+                if (game.isReserved("cz") || game.isReserved("sk")) {
+                    event.getChannel().sendMessage("⚠️ Hra **" + gameName + "** už je rezervovaná pre CZ alebo SK.").queue();
+                    return;
+                }
+                game.setReservedByCz(userName);
+                game.setReservedByIdCz(userId);
+                game.setReservedBySk(userName);
+                game.setReservedByIdSk(userId);
+            }
+            default -> {
+                event.getChannel().sendMessage("⚠️ Neplatný jazyk. Použi: cz, sk alebo both").queue();
+                return;
+            }
         }
 
-        game.setReservedBy(userName);
-        game.setReservedById(user.getId());
-
         storage.save(game);
-
-        event.getChannel().sendMessage(
-                "✅ Hra **" + gameName + "** bola úspešne rezervovaná používateľom **" + userName + "**."
-        ).queue();
+        event.getChannel().sendMessage("✅ Hra **" + gameName + "** rezervovaná pre **" + lang.toUpperCase() + "** používateľom **" + userName + "**.").queue();
     }
 }

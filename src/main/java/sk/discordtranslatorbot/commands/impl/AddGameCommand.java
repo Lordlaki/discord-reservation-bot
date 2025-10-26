@@ -14,9 +14,7 @@ public class AddGameCommand implements Command {
     }
 
     @Override
-    public String getName() {
-        return "pridaj";  // bez !!
-    }
+    public String getName() { return "pridaj"; }
 
     @Override
     public String getDescription() {
@@ -33,7 +31,6 @@ public class AddGameCommand implements Command {
         String name = argument;
         String link = null;
 
-        // Rozdelenie názvu a linku
         String[] parts = argument.split("\\s+");
         String lastPart = parts[parts.length - 1];
         if (lastPart.startsWith("http://") || lastPart.startsWith("https://")) {
@@ -42,8 +39,7 @@ public class AddGameCommand implements Command {
         }
 
         Game g = new Game(name);
-        if (link != null) g.setSteamLink(link);
-
+        g.setSteamLink(link);  // Steam link je D
         storage.addOrUpdateGame(g);
 
         event.getChannel().sendMessage("✅ Hra pridaná: **" + name + "**").queue();

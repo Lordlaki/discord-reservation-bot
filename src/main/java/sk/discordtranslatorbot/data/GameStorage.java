@@ -14,15 +14,10 @@ public class GameStorage {
     private final Gson gson = new Gson();
     private Map<String, Game> games = new HashMap<>();
 
-    public GameStorage() {
-        load();
-    }
+    public GameStorage() { load(); }
 
-    private String key(String name) {
-        return name.trim().toLowerCase();
-    }
+    private String key(String name) { return name.trim().toLowerCase(); }
 
-    // pridanie novej hry podľa mena (legacy)
     public synchronized void addGame(String name) {
         String k = key(name);
         if (!games.containsKey(k)) {
@@ -31,31 +26,28 @@ public class GameStorage {
         }
     }
 
-    // pridanie alebo aktualizácia celej hry
     public synchronized void addOrUpdateGame(Game game) {
         String k = key(game.getName());
         Game existing = games.get(k);
         if (existing == null) {
             games.put(k, game);
         } else {
-            existing.setReservedBy(game.getReservedBy());
-            existing.setReservedById(game.getReservedById());
+            existing.setReservedByCz(game.getReservedByCz());
+            existing.setReservedByIdCz(game.getReservedByIdCz());
+            existing.setReservedBySk(game.getReservedBySk());
+            existing.setReservedByIdSk(game.getReservedByIdSk());
             existing.setSteamLink(game.getSteamLink());
+            existing.setCzechVersion(game.getCzechVersion());
+            existing.setSlovakVersion(game.getSlovakVersion());
+            existing.setCompleted(game.isCompleted());
         }
         save();
     }
 
-    // získanie hry podľa mena
-    public synchronized Game get(String name) {
-        return games.get(key(name));
-    }
+    public synchronized Game get(String name) { return games.get(key(name)); }
 
-    // získanie všetkých hier
-    public synchronized Collection<Game> getAll() {
-        return games.values();
-    }
+    public synchronized Collection<Game> getAll() { return games.values(); }
 
-    // odstránenie hry
     public synchronized void removeGame(String name) {
         String k = key(name);
         if (games.containsKey(k)) {
@@ -64,16 +56,12 @@ public class GameStorage {
         }
     }
 
-    // uloženie do JSON
     public synchronized void save() {
         try (Writer w = new OutputStreamWriter(new FileOutputStream(FILE), StandardCharsets.UTF_8)) {
             gson.toJson(games, w);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // načítanie zo súboru
     public synchronized void load() {
         File f = new File(FILE);
         if (!f.exists()) return;
@@ -81,8 +69,6 @@ public class GameStorage {
             Type type = new TypeToken<Map<String, Game>>() {}.getType();
             Map<String, Game> loaded = gson.fromJson(r, type);
             if (loaded != null) games = loaded;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 }
