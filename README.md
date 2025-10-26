@@ -68,3 +68,23 @@ mvn clean install
 java -jar target/discord-reservation-bot-1.0.0.jar
 ```
 
+✅ Ak všetko prebehlo správne, v konzole sa zobrazí:
+
+```bash
+✅ Bot beží...
+```
+
+---
+
+🧠 Príkazy
+
+| Príkaz | Popis |
+|:--------|:------|
+| `!pridaj <názov>` | Pridá novú hru do zoznamu |
+| `!rezervuj <názov>` | Rezervuje hru pre používateľa |
+| `!zrus <názov>` | Zruší tvoju rezerváciu |
+| `!zoznam` | Zobrazí všetky hry |
+| `!info <názov>` | Zobrazí detaily o hre |
+| `!complet <názov>` | Označí hru ako dokončenú |
+| `!commands` | Zobrazí všetky dostupné príkazy |
+
