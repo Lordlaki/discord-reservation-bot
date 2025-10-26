@@ -47,7 +47,7 @@ SHEET_ID=<id_google_sheets_tabulky>
 Vygeneruj cez Google Cloud Console → Service Account → Keys → JSON
 (pozor – nesdieľaj tento súbor verejne)
 
-3️⃣ Build projektu
+####3️⃣ Build projektu
 Pomocou Maven:
 mvn clean install
 
