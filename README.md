@@ -39,7 +39,7 @@ cd discord-reservation-bot
 
 Umiestni do src/main/resources/config.properties
 
-```bash
+```properties
 DISCORD_TOKEN=<tvoj_discord_bot_token>
 SHEET_ID=<id_google_sheets_tabulky>
 ```
@@ -47,4 +47,17 @@ SHEET_ID=<id_google_sheets_tabulky>
 
 Vygeneruj cez Google Cloud Console → Service Account → Keys → JSON
 (pozor – nesdieľaj tento súbor verejne)
+
+### 3️⃣ Build projektu
+Pomocou Maven:
+
+```bash
+mvn clean install
+```
+
+### 4️⃣ Spustenie bota
+
+```bash
+java -jar target/discord-reservation-bot-1.0.0.jar
+```
 
