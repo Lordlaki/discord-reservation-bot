@@ -228,6 +228,8 @@ MIT License © 2025 — Lukas M "Haku"
 Tento projekt je open-source.
 Použitie, úprava a distribúcia sú povolené s uvedením autora.
 
+---
+
 ##🧑‍💻 Autor
 
 Lukas M "Haku"
