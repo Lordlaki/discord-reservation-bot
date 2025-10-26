@@ -33,6 +33,7 @@
 ```bash
 git clone https://github.com/<tvoj-username>/discord-reservation-bot.git
 cd discord-reservation-bot
+```
 
 2️⃣ Nastavenie konfigurácie
 🔑 Súbor config.properties
