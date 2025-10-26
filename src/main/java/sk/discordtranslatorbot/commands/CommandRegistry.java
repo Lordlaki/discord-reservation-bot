@@ -20,6 +20,7 @@ public class CommandRegistry {
         commands.add(new ListGamesCommand(storage));    // !zoznam
         commands.add(new ReserveGameCommand(storage));  // !rezervuj
         commands.add(new InfoCommand(storage));         // !info
+        commands.add(new CompleteCommand(storage));  // !complet
         commands.add(new CommandsListCommand(commands)); // !commands
     }
 

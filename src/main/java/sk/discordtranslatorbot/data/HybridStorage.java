@@ -28,6 +28,8 @@ public class HybridStorage {
         local.setReservedBy(game.getReservedBy());
         local.setReservedById(game.getReservedById());
         local.setSteamLink(game.getSteamLink());
+        local.setCzechVersion(game.getCzechVersion());
+        local.setCompleted(game.isCompleted());
         localStorage.save();
 
         if (remoteStorage != null) {
@@ -55,6 +57,8 @@ public class HybridStorage {
                         localGame.setReservedBy(rg.getReservedBy());
                         localGame.setReservedById(rg.getReservedById());
                         localGame.setSteamLink(rg.getSteamLink());
+                        localGame.setCzechVersion(rg.getCzechVersion());
+                        localGame.setCompleted(rg.isCompleted());
                         localStorage.save();
                         return localGame;
                     }
@@ -93,5 +97,35 @@ public class HybridStorage {
      */
     public synchronized void save(Game g) {
         addOrUpdateGame(g);
+    }
+
+    /**
+     * Vyhľadá hru podľa názvu (čiastočne alebo presne).
+     */
+    public synchronized Game findGameByName(String name) {
+        if (name == null || name.isBlank()) return null;
+        String lower = name.toLowerCase();
+
+        // najprv lokálne
+        for (Game g : localStorage.getAll()) {
+            if (g.getName().toLowerCase().contains(lower)) {
+                return g;
+            }
+        }
+
+        // ak nenájde, skús aj z Google Sheets
+        if (remoteStorage != null) {
+            try {
+                for (Game g : remoteStorage.getAll()) {
+                    if (g.getName().toLowerCase().contains(lower)) {
+                        return g;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Chyba pri hľadaní hry v Google Sheets: " + e.getMessage());
+            }
+        }
+
+        return null;
     }
 }

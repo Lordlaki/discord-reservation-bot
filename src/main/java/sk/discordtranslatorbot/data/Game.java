@@ -7,6 +7,10 @@ public class Game {
     private String reservedById;
     private String steamLink;
 
+    // 🔹 nové polia pre complet
+    private String czechVersion;
+    private boolean completed;
+
     public Game(String name) {
         this.name = name;
     }
@@ -22,8 +26,15 @@ public class Game {
     public String getSteamLink() { return steamLink; }
     public void setSteamLink(String steamLink) { this.steamLink = steamLink; }
 
-    // Nová metóda: či je hra rezervovaná
     public boolean isReserved() {
         return reservedBy != null && !reservedBy.isBlank();
     }
+
+    // 🔹 verzia češtiny
+    public String getCzechVersion() { return czechVersion; }
+    public void setCzechVersion(String czechVersion) { this.czechVersion = czechVersion; }
+
+    // 🔹 stav dokončenia
+    public boolean isCompleted() { return completed; }
+    public void setCompleted(boolean completed) { this.completed = completed; }
 }

@@ -9,33 +9,46 @@ import sk.discordtranslatorbot.data.HybridStorage;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Hlavný handler správ pre Discord bota.
+ * Načíta všetky príkazy z CommandRegistry a spracováva ich podľa textu.
+ */
 public class ReservationBot extends ListenerAdapter {
 
-    private final Map<String, Command> commands = new HashMap<>();
+    private final Map<String, Command> commandMap = new HashMap<>();
 
     public ReservationBot(HybridStorage storage, CommandRegistry registry) {
-        // Naplníme mapu všetkými príkazmi z registry
+        // Registrácia všetkých príkazov z registry do mapy pre rýchly prístup
         for (Command cmd : registry.getCommands()) {
-            commands.put(cmd.getName().toLowerCase(), cmd);
+            commandMap.put(cmd.getName().toLowerCase(), cmd);
         }
     }
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        // Ignoruj správy od botov
         if (event.getAuthor().isBot()) return;
 
-        String msg = event.getMessage().getContentRaw().trim();
-        if (!msg.startsWith("!")) return;
+        String rawMessage = event.getMessage().getContentRaw().trim();
+        if (!rawMessage.startsWith("!")) return; // musí začínať '!' aby sa spracovalo
 
-        String[] parts = msg.substring(1).split("\\s+", 2);
-        String cmdName = parts[0].toLowerCase();
-        String arg = parts.length > 1 ? parts[1] : null;
+        // Rozdelenie príkazu a argumentov
+        String[] parts = rawMessage.substring(1).split("\\s+", 2);
+        String commandName = parts[0].toLowerCase();
+        String argument = (parts.length > 1) ? parts[1] : null;
 
-        Command cmd = commands.get(cmdName);
-        if (cmd != null) {
-            cmd.execute(event, arg);
+        // Vyhľadanie príkazu
+        Command command = commandMap.get(commandName);
+
+        if (command != null) {
+            try {
+                command.execute(event, argument);
+            } catch (Exception e) {
+                event.getChannel().sendMessage("⚠️ Nastala chyba pri spracovaní príkazu: " + e.getMessage()).queue();
+                e.printStackTrace();
+            }
         } else {
-            event.getChannel().sendMessage("❌ Neznámy príkaz: " + cmdName).queue();
+            event.getChannel().sendMessage("❌ Neznámy príkaz: `" + commandName + "`").queue();
         }
     }
 }
