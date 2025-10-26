@@ -34,16 +34,17 @@
 git clone https://github.com/<tvoj-username>/discord-reservation-bot.git
 cd discord-reservation-bot
 ```
-
-2️⃣ Nastavenie konfigurácie
+### 2️⃣ Nastavenie konfigurácie
 🔑 Súbor config.properties
 
 Umiestni do src/main/resources/config.properties
 
+```bash
 DISCORD_TOKEN=<tvoj_discord_bot_token>
 SHEET_ID=<id_google_sheets_tabulky>
-
+```
 📄 Súbor credentials.json
 
 Vygeneruj cez Google Cloud Console → Service Account → Keys → JSON
 (pozor – nesdieľaj tento súbor verejne)
+
