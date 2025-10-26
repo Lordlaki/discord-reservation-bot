@@ -34,7 +34,15 @@ public class CommandsListCommand implements Command {
 
         for (Command c : commands) {
             String emoji = getEmoji(c.getName());
-            embed.addField(emoji + " !" + c.getName(), c.getDescription(), false);
+            // špeciálne pre complet – zobrazíme všetky jazykové varianty
+            if (c.getName().equalsIgnoreCase("complet")) {
+                embed.addField(emoji + " !complet <názov hry> sk <verzia>", c.getDescription(), false);
+                embed.addField(emoji + " !complet <názov hry> cz <verzia>", c.getDescription(), false);
+                embed.addField(emoji + " !complet <názov hry> both <verzia>", c.getDescription(), false);
+            } else {
+                String category = getCategory(c.getName());
+                embed.addField(emoji + " !" + c.getName() + category, c.getDescription(), false);
+            }
         }
 
         event.getChannel().sendMessageEmbeds(embed.build()).queue();
@@ -48,7 +56,18 @@ public class CommandsListCommand implements Command {
             case "rezervuj" -> "🔒";
             case "info" -> "ℹ️";
             case "commands" -> "📜";
+            case "complet" -> "✅";       // zelené plus pre complet
             default -> "💡";
+        };
+    }
+
+    // voliteľne – priradíme kategóriu alebo symbol k príkazu
+    private String getCategory(String commandName) {
+        return switch (commandName.toLowerCase()) {
+            case "pridaj", "complet" -> " (úpravy/hotové)";
+            case "rezervuj", "zrus" -> " (rezervácie)";
+            case "zoznam", "info" -> " (informácie)";
+            default -> "";
         };
     }
 }

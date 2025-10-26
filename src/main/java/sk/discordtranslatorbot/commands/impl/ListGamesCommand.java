@@ -22,12 +22,12 @@ public class ListGamesCommand implements Command {
 
     @Override
     public String getName() {
-        return "zoznam"; // bez !!
+        return "zoznam";
     }
 
     @Override
     public String getDescription() {
-        return "Zobrazí všetky hry, ich stav a Steam link (graficky).";
+        return "Zobrazí všetky hry, ich stav, Steam link a verziu češtiny/slovenčiny.";
     }
 
     @Override
@@ -41,13 +41,24 @@ public class ListGamesCommand implements Command {
 
         for (Game g : games) {
             EmbedBuilder embed = new EmbedBuilder();
-            embed.setTitle(g.getName());
+
+            String title = g.getName();
+            if (g.isCompleted()) {
+                title = "✅ " + title; // pridanie ikonky hotové
+            }
+            embed.setTitle(title);
             embed.setColor(Color.CYAN);
 
             String status = g.isReserved() ? "🔒 rezervované" : "🟢 voľná";
-            String linkText = g.getSteamLink() != null ? "[Steam link](" + g.getSteamLink() + ")" : "-";
-
             embed.addField("Status", status, false);
+
+            // verzie
+            String cz = g.getCzechVersion() != null ? g.getCzechVersion() : "-";
+            String sk = g.getSlovakVersion() != null ? g.getSlovakVersion() : "-";
+            embed.addField("Verzia", "🇨🇿 " + cz + " | 🇸🇰 " + sk, false);
+
+            // Steam link
+            String linkText = g.getSteamLink() != null ? "[Steam link](" + g.getSteamLink() + ")" : "-";
             embed.addField("Steam", linkText, false);
 
             // pridanie obrázku z Steam

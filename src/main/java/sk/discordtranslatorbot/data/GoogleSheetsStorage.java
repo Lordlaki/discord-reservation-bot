@@ -28,7 +28,7 @@ public class GoogleSheetsStorage {
 
     public List<Game> getAll() throws Exception {
         ValueRange response = service.spreadsheets().values()
-                .get(spreadsheetId, sheetName + "!A:F")
+                .get(spreadsheetId, sheetName + "!A:G") // stĺpce A-G
                 .execute();
 
         List<List<Object>> values = response.getValues();
@@ -40,18 +40,13 @@ public class GoogleSheetsStorage {
                 String name = row.size() > 0 ? row.get(0).toString() : "";
                 if (name.isBlank()) continue;
 
-                String reservedBy = row.size() > 1 ? row.get(1).toString() : null;
-                String reservedById = row.size() > 2 ? row.get(2).toString() : null;
-                String steamLink = row.size() > 3 ? row.get(3).toString() : null;
-                String czechVersion = row.size() > 4 ? row.get(4).toString() : null;
-                boolean completed = row.size() > 5 && "Hotovo".equalsIgnoreCase(row.get(5).toString());
-
                 Game g = new Game(name);
-                g.setReservedBy((reservedBy == null || reservedBy.isBlank()) ? null : reservedBy);
-                g.setReservedById((reservedById == null || reservedById.isBlank()) ? null : reservedById);
-                g.setSteamLink((steamLink == null || steamLink.isBlank()) ? null : steamLink);
-                g.setCzechVersion(czechVersion);
-                g.setCompleted(completed);
+                g.setReservedBy(row.size() > 1 && !row.get(1).toString().isBlank() ? row.get(1).toString() : null);
+                g.setReservedById(row.size() > 2 && !row.get(2).toString().isBlank() ? row.get(2).toString() : null);
+                g.setSteamLink(row.size() > 3 && !row.get(3).toString().isBlank() ? row.get(3).toString() : null);
+                g.setCzechVersion(row.size() > 4 && !row.get(4).toString().isBlank() ? row.get(4).toString() : null);
+                g.setSlovakVersion(row.size() > 5 && !row.get(5).toString().isBlank() ? row.get(5).toString() : null);
+                g.setCompleted(row.size() > 6 && "true".equalsIgnoreCase(row.get(6).toString()));
 
                 games.add(g);
             }
@@ -66,7 +61,7 @@ public class GoogleSheetsStorage {
 
         for (int i = 0; i < all.size(); i++) {
             if (all.get(i).getName().equalsIgnoreCase(g.getName())) {
-                existingIndex = i + 2; // Sheets index od 1 + hlavička
+                existingIndex = i + 2; // index 1-based + preskočenie hlavičky
                 break;
             }
         }
@@ -78,22 +73,19 @@ public class GoogleSheetsStorage {
                 g.getReservedById() != null ? g.getReservedById() : "",
                 g.getSteamLink() != null ? g.getSteamLink() : "",
                 g.getCzechVersion() != null ? g.getCzechVersion() : "",
-                g.isCompleted() ? "Hotovo" : ""
+                g.getSlovakVersion() != null ? g.getSlovakVersion() : "",
+                g.isCompleted() ? "true" : "false"
         ));
 
         ValueRange body = new ValueRange().setValues(values);
 
         if (existingIndex != -1) {
-            String range = sheetName + "!A" + existingIndex + ":F" + existingIndex;
-            service.spreadsheets().values()
-                    .update(spreadsheetId, range, body)
-                    .setValueInputOption("RAW")
-                    .execute();
+            String range = sheetName + "!A" + existingIndex + ":G" + existingIndex;
+            service.spreadsheets().values().update(spreadsheetId, range, body)
+                    .setValueInputOption("RAW").execute();
         } else {
-            service.spreadsheets().values()
-                    .append(spreadsheetId, sheetName + "!A:F", body)
-                    .setValueInputOption("RAW")
-                    .execute();
+            service.spreadsheets().values().append(spreadsheetId, sheetName + "!A:G", body)
+                    .setValueInputOption("RAW").execute();
         }
     }
 }

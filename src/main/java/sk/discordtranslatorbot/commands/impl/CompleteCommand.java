@@ -20,32 +20,33 @@ public class CompleteCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "Označí hru ako dokončenú a pridá verziu češtiny. Použitie: !complet <názov hry> <verzia>";
+        return "Označí hru ako dokončenú a pridá verziu češtiny, slovenčiny alebo obe. Použitie: !complet <názov hry> <jazyk:cz/sk/both> <verzia>";
     }
 
     @Override
     public void execute(MessageReceivedEvent event, String args) {
         if (args == null || args.isBlank()) {
-            event.getChannel().sendMessage("⚠️ Použitie: `!complet <názov hry> <verzia>`").queue();
+            event.getChannel().sendMessage("⚠️ Použitie: `!complet <názov hry> <jazyk:cz/sk/both> <verzia>`").queue();
             return;
         }
 
         String[] parts = args.trim().split("\\s+");
-        if (parts.length < 2) {
-            event.getChannel().sendMessage("⚠️ Musíš zadať aj názov hry aj verziu.").queue();
+        if (parts.length < 3) {
+            event.getChannel().sendMessage("⚠️ Musíš zadať názov hry, jazyk a verziu.").queue();
             return;
         }
 
         String version = parts[parts.length - 1];
+        String lang = parts[parts.length - 2].toLowerCase();
+
         StringBuilder nameBuilder = new StringBuilder();
-        for (int i = 0; i < parts.length - 1; i++) {
+        for (int i = 0; i < parts.length - 2; i++) {
             nameBuilder.append(parts[i]);
-            if (i < parts.length - 2) nameBuilder.append(" ");
+            if (i < parts.length - 3) nameBuilder.append(" ");
         }
         String gameName = nameBuilder.toString();
 
-        Game game = storage.get(gameName); // použitie get() z HybridStorage
-
+        Game game = storage.get(gameName);
         if (game == null) {
             event.getChannel().sendMessage("❌ Hra **" + gameName + "** neexistuje.").queue();
             return;
@@ -57,11 +58,25 @@ public class CompleteCommand implements Command {
             return;
         }
 
-        game.setCzechVersion(version);
+        // nastavenie verzie podľa jazyka
+        switch (lang) {
+            case "cz" -> game.setCzechVersion(version);
+            case "sk" -> game.setSlovakVersion(version);
+            case "both" -> {
+                game.setCzechVersion(version);
+                game.setSlovakVersion(version);
+            }
+            default -> {
+                event.getChannel().sendMessage("⚠️ Neplatný jazyk. Použi: cz, sk alebo both").queue();
+                return;
+            }
+        }
+
         game.setCompleted(true);
         storage.save(game); // uloží aj do Google Sheets
 
-        event.getChannel().sendMessage("✅ Hra **" + game.getName() + "** bola označená ako hotová ✅\n"
-                + "📦 Verzia češtiny: `" + version + "`").queue();
+        event.getChannel().sendMessage("✅ Hra **" + game.getName() + "** označená ako hotová.\n"
+                + "🇨🇿 " + (game.getCzechVersion() != null ? game.getCzechVersion() : "-") + " | "
+                + "🇸🇰 " + (game.getSlovakVersion() != null ? game.getSlovakVersion() : "-")).queue();
     }
 }
